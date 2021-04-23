@@ -9,6 +9,19 @@ include(FetchContent)
 set(CMAKE_CXX_STANDARD 20)
 # set(CMAKE_CXX_FLAGS "-Wall -Wextra")
 
+FetchContent_Declare(
+  spdlog
+  GIT_REPOSITORY https://github.com/gabime/spdlog.git
+  GIT_TAG        v1.8.5
+)
+
+FetchContent_GetProperties(spdlog)
+
+if(NOT spdlog_POPULATED)
+  FetchContent_Populate(spdlog)
+  add_subdirectory(${spdlog_SOURCE_DIR} ${spdlog_BINARY_DIR})
+endif()
+
 # Glew
 FetchContent_Declare(
     glew
@@ -110,6 +123,8 @@ endif()
 
 file(GLOB SRC src/*.cpp src/**/*.cpp)
 
+file(COPY ${CMAKE_CURRENT_LIST_DIR}/src/Shaders DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
+
 # library
 add_executable(
     glTut
@@ -124,19 +139,29 @@ if (OPENGL_GLU_FOUND)
     target_link_libraries(glTut PUBLIC ${OPENGL_glu_LIBRARY})
 endif()
 
-target_include_directories(glTut PUBLIC 
-    ${glew_SOURCE_DIR}/include 
+target_include_directories(glTut PUBLIC
+    ${spdlog_SOURCE_DIR}
+    ${glew_SOURCE_DIR}/include
     ${glfw_SOURCE_DIR}/include
-    ${sfml_SOURCE_DIR}/include 
-    ${std_image_SOURCE_DIR} 
-    ${glm_SOURCE_DIR} 
+    ${sfml_SOURCE_DIR}/include
+    ${std_image_SOURCE_DIR}
+    ${glm_SOURCE_DIR}
     ${assimp_SOURCE_DIR}/include
     ${freetype2_SOURCE_DIR}/include
 
     ${CMAKE_CURRENT_SOURCE_DIR}/include
 )
 
-target_link_libraries(glTut PUBLIC libglew_static glfw assimp freetype ${OPENGL_LIBRARIES})
+target_link_libraries(
+  glTut
+  PUBLIC
+  spdlog
+  libglew_static
+  glfw
+  assimp
+  freetype
+  ${OPENGL_LIBRARIES}
+)
 
 message("Libs" ${GLEW_TARGETS})
 # install
